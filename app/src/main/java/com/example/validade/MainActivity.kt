@@ -1,5 +1,15 @@
 package com.example.validade
 
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
+import android.content.Context
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringSetPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,6 +36,38 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
+// ---------------- DATASTORE --------------------
+
+val Context.expiryDataStore by preferencesDataStore(name = "expiry_prefs")
+
+object ExpiryRepository {
+
+    private val ITEMS_KEY = stringSetPreferencesKey("expiry_items")
+
+    private fun itemToString(item: ExpiryItem): String =
+        "${item.name}||${item.expiryDate}"
+
+    private fun stringToItem(value: String): ExpiryItem {
+        val parts = value.split("||")
+        return ExpiryItem(
+            name = parts.getOrNull(0) ?: "",
+            expiryDate = parts.getOrNull(1) ?: ""
+        )
+    }
+
+    fun getItems(context: Context): Flow<List<ExpiryItem>> {
+        return context.expiryDataStore.data.map { prefs: Preferences ->
+            val set = prefs[ITEMS_KEY] ?: emptySet()
+            set.map { stringToItem(it) }
+        }
+    }
+
+    suspend fun saveItems(context: Context, items: List<ExpiryItem>) {
+        context.expiryDataStore.edit { prefs ->
+            prefs[ITEMS_KEY] = items.map { itemToString(it) }.toSet()
+        }
+    }
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -121,10 +163,17 @@ fun parseDateOrMax(dateStr: String): LocalDate {
 fun ExpiryScreen(modifier: Modifier = Modifier) {
     var name by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
-    var items by remember { mutableStateOf(listOf<ExpiryItem>()) }
 
-    // ordena pelos que vencem antes
-    val sortedItems = items.sortedBy { parseDateOrMax(it.expiryDate) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    // lê os itens salvos
+    val itemsFromStore by ExpiryRepository
+        .getItems(context)
+        .collectAsState(initial = emptyList())
+
+    // ordena
+    val sortedItems = itemsFromStore.sortedBy { parseDateOrMax(it.expiryDate) }
 
     Surface(
         modifier = modifier,
@@ -164,7 +213,10 @@ fun ExpiryScreen(modifier: Modifier = Modifier) {
             Button(
                 onClick = {
                     if (name.isNotBlank() && date.isNotBlank()) {
-                        items = items + ExpiryItem(name, date)
+                        val newList = itemsFromStore + ExpiryItem(name, date)
+                        scope.launch {
+                            ExpiryRepository.saveItems(context, newList)
+                        }
                         name = ""
                         date = ""
                     }
@@ -189,7 +241,10 @@ fun ExpiryScreen(modifier: Modifier = Modifier) {
                     ExpiryCard(
                         item = item,
                         onDelete = {
-                            items = items - item
+                            val newList = itemsFromStore - item
+                            scope.launch {
+                                ExpiryRepository.saveItems(context, newList)
+                            }
                         }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -198,6 +253,7 @@ fun ExpiryScreen(modifier: Modifier = Modifier) {
         }
     }
 }
+
 
 /* ------------ CARD DE CADA PRODUTO ------------ */
 
