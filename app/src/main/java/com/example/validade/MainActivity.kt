@@ -1,5 +1,6 @@
 package com.example.validade
 
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -92,7 +93,6 @@ class MainActivity : ComponentActivity() {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(WindowInsets.systemBars.asPaddingValues())
                 ) {
                     ValidadeApp()
                 }
@@ -179,6 +179,7 @@ fun parseDateOrMax(dateStr: String): LocalDate {
 
 @Composable
 fun ExpiryScreen(modifier: Modifier = Modifier) {
+
     var name by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
 
@@ -194,84 +195,106 @@ fun ExpiryScreen(modifier: Modifier = Modifier) {
     val sortedItems = itemsFromStore.sortedBy { parseDateOrMax(it.expiryDate) }
 
     Surface(
-        modifier = modifier
-        .windowInsetsPadding(WindowInsets.systemBars),
+        modifier = modifier.fillMaxSize(),
         color = Color(0xFFF5F5F5)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .windowInsetsPadding(WindowInsets.systemBars)
         ) {
-
-            Text(
-                text = "Controle de Validade",
-                style = MaterialTheme.typography.headlineMedium
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Produto") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = date,
-                onValueChange = { date = it },
-                label = { Text("Data de validade (ex: 10/12/2025)") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Button(
-                onClick = {
-                    if (name.isNotBlank() && date.isNotBlank()) {
-                        val newList = itemsFromStore + ExpiryItem(name, date)
-                        scope.launch {
-                            ExpiryRepository.saveItems(context, newList)
-                        }
-                        name = ""
-                        date = ""
-                    }
-                }
+            // Barra do título
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .padding(vertical = 12.dp)
             ) {
-                Text("Adicionar")
+                Text(
+                    text = "Validade+",
+                    modifier = Modifier.align(Alignment.Center),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Itens cadastrados",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LazyColumn(
-                modifier = Modifier.fillMaxSize()
+            // Conteúdo com padding e tudo centralizado
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
-                items(sortedItems) { item ->
-                    ExpiryCard(
-                        item = item,
-                        onDelete = {
-                            val newList = itemsFromStore - item
+
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Produto") },
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)                    // menor
+                        .align(Alignment.CenterHorizontally)   // centralizado
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = date,
+                    onValueChange = { date = it },
+                    label = { Text("Data de validade (ex: 10/12/2025)") },
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .align(Alignment.CenterHorizontally)
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Button(
+                    onClick = {
+                        if (name.isNotBlank() && date.isNotBlank()) {
+                            val newList = itemsFromStore + ExpiryItem(name, date)
                             scope.launch {
                                 ExpiryRepository.saveItems(context, newList)
                             }
+                            name = ""
+                            date = ""
                         }
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    },
+                    modifier = Modifier.align(Alignment.CenterHorizontally) // centraliza o botão
+                ) {
+                    Text("Adicionar")
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = "Itens cadastrados",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.align(Alignment.CenterHorizontally) // centraliza o título
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(sortedItems) { item ->
+                        ExpiryCard(
+                            item = item,
+                            onDelete = {
+                                val newList = itemsFromStore - item
+                                scope.launch {
+                                    ExpiryRepository.saveItems(context, newList)
+                                }
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun Graficos(modifier: Modifier = Modifier) {
