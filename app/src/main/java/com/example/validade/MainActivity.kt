@@ -1,5 +1,6 @@
 package com.example.validade
 
+import android.R
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
@@ -111,7 +112,8 @@ fun ValidadeApp() {
                 )
             }
         }
-    ) {
+    )
+    {
         when (currentDestination) {
 
             AppDestinations.HOME -> {
@@ -121,7 +123,7 @@ fun ValidadeApp() {
                 )
             }
 
-            AppDestinations.FAVORITES -> {
+            AppDestinations.GRAFICO -> {
                 PlaceholderScreen(
                     title = "Favorites",
                     modifier = Modifier
@@ -140,7 +142,7 @@ fun ValidadeApp() {
     }
 }
 
-/* ------------ MODELO E FUNÇÕES DE DATA ------------ */
+/* Função data */
 
 data class ExpiryItem(
     val name: String,
@@ -157,7 +159,7 @@ fun parseDateOrMax(dateStr: String): LocalDate {
     }
 }
 
-/* ------------ TELA HOME (CONTROLE DE VALIDADE) ------------ */
+/* Tela inicial */
 
 @Composable
 fun ExpiryScreen(modifier: Modifier = Modifier) {
@@ -254,8 +256,25 @@ fun ExpiryScreen(modifier: Modifier = Modifier) {
     }
 }
 
+@Composable
+fun Graficos(modifier: Modifier = Modifier){
 
-/* ------------ CARD DE CADA PRODUTO ------------ */
+    Surface(
+        modifier = modifier,
+        color = Color(0xFFF5F5F5)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Text("Gráfico")
+        }
+
+    }
+}
+
+/* Produtos */
 
 @Composable
 fun ExpiryCard(
