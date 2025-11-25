@@ -1,5 +1,7 @@
 package com.example.validade
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import java.time.temporal.ChronoUnit
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
@@ -124,8 +126,7 @@ fun ValidadeApp() {
             }
 
             AppDestinations.GRAFICO -> {
-                PlaceholderScreen(
-                    title = "Grafico",
+                Graficos(
                     modifier = Modifier
                         .fillMaxSize()
                 )
@@ -318,8 +319,25 @@ fun Graficos(modifier: Modifier = Modifier) {
             Text("Produtos em risco (≤14 dias): $produtosRisco")
             Text("Produtos em alerta (15–30 dias): $produtosAlerta")
             Text("Dentro da validade (>30 dias): $naValidade")
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                "Gráfico de situação",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            GraficoBarrasHorizontais(
+                contVencidos = contVencidos,
+                produtosRisco = produtosRisco,
+                produtosAlerta = produtosAlerta,
+                naValidade = naValidade
+            )
         }
     }
+
 }
 
 /* Produtos */
@@ -380,5 +398,53 @@ fun PlaceholderScreen(title: String, modifier: Modifier = Modifier) {
 fun ExpiryScreenPreview() {
     ValidadeTheme {
         ExpiryScreen()
+    }
+}
+@Composable
+fun GraficoBarrasHorizontais(
+    contVencidos: Int,
+    produtosRisco: Int,
+    produtosAlerta: Int,
+    naValidade: Int,
+    modifier: Modifier = Modifier
+) {
+    val maxValor = listOf(contVencidos, produtosRisco, produtosAlerta, naValidade).maxOrNull() ?: 1
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Barra("Vencidos", contVencidos, maxValor, Color(0xFFFF5555))
+        Barra("Risco (≤14 dias)", produtosRisco, maxValor, Color(0xFFFFAA00))
+        Barra("Alerta (15–30 dias)", produtosAlerta, maxValor, Color(0xFFFFCC00))
+        Barra("Dentro da validade", naValidade, maxValor, Color(0xFF66CC66))
+    }
+}
+
+@Composable
+fun Barra(
+    titulo: String,
+    valor: Int,
+    maxValor: Int,
+    cor: Color
+) {
+    Column {
+        Text(titulo, style = MaterialTheme.typography.bodyMedium)
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(18.dp)
+                .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(4.dp))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(fraction = if (maxValor == 0) 0f else valor / maxValor.toFloat())
+                    .background(cor, shape = RoundedCornerShape(4.dp))
+            )
+        }
+
+        Text("$valor itens", style = MaterialTheme.typography.labelSmall)
     }
 }
