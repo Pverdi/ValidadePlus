@@ -12,8 +12,8 @@ android {
 
     defaultConfig {
         applicationId = "com.example.validade"
-        minSdk = 24
-        targetSdk = 36
+        minSdk = 23
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -36,7 +36,7 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
