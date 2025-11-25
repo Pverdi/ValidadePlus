@@ -1,6 +1,6 @@
 package com.example.validade
 
-import android.R
+import java.time.temporal.ChronoUnit
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
@@ -125,7 +125,7 @@ fun ValidadeApp() {
 
             AppDestinations.GRAFICO -> {
                 PlaceholderScreen(
-                    title = "Favorites",
+                    title = "Grafico",
                     modifier = Modifier
                         .fillMaxSize()
                 )
@@ -257,30 +257,49 @@ fun ExpiryScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun Graficos(modifier: Modifier = Modifier){
+fun Graficos(modifier: Modifier = Modifier) {
 
     val context = LocalContext.current
 
-    //p/ ler os itens salvos
+    // p/ ler os itens salvos
     val items by ExpiryRepository
         .getItems(context)
         .collectAsState(initial = emptyList())
 
     val diaAtual = LocalDate.now()
 
-    // variaveis do grafico
-
+    // variáveis do gráfico
     var total = 0
-    var contVencidos = 0 // produtos vencidos
-    var produtosRisco = 0 // em risco de vencer 2 semanas
-    var produtosAlerta = 0 // atenção em risco em 15 a 30 dias
-    var naValidade = 0 // dentro da validade
+    var contVencidos = 0    // produtos vencidos
+    var produtosRisco = 0   // em risco de vencer 2 semanas
+    var produtosAlerta = 0  // atenção em risco em 15 a 30 dias
+    var naValidade = 0      // dentro da validade
 
-    //total logica
-
+    // total lógica
     total = items.size
 
+    // classificar cada item
+    items.forEach { item ->
+        val expiry = parseDateOrMax(item.expiryDate)
+        val daysUntil = ChronoUnit.DAYS.between(diaAtual, expiry)
 
+        when {
+            // Vencidos
+            daysUntil < 0 -> contVencidos++
+
+            // Em risco (até 14 dias)
+            daysUntil in 0..14 -> produtosRisco++
+
+            // Atenção (15 a 30 dias)
+            daysUntil in 15..30 -> produtosAlerta++
+
+            // Dentro da validade (>30 dias)
+            else -> naValidade++
+        }
+    }
+
+    // ⬆️ até aqui é só LÓGICA
+    // ⬇️ daqui pra baixo é a UI (Surface + Column), FORA do forEach/when
 
     Surface(
         modifier = modifier,
@@ -291,9 +310,15 @@ fun Graficos(modifier: Modifier = Modifier){
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Text("Gráfico")
-        }
+            Text("Resumo dos produtos", style = MaterialTheme.typography.headlineMedium)
+            Spacer(modifier = Modifier.height(16.dp))
 
+            Text("Total cadastrados: $total")
+            Text("Produtos vencidos: $contVencidos")
+            Text("Produtos em risco (≤14 dias): $produtosRisco")
+            Text("Produtos em alerta (15–30 dias): $produtosAlerta")
+            Text("Dentro da validade (>30 dias): $naValidade")
+        }
     }
 }
 
@@ -332,7 +357,7 @@ fun ExpiryCard(
     }
 }
 
-/* ------------ TELAS DAS OUTRAS ABAS ------------ */
+/*  outra tela  */
 
 @Composable
 fun PlaceholderScreen(title: String, modifier: Modifier = Modifier) {
