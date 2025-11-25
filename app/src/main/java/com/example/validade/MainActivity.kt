@@ -259,6 +259,29 @@ fun ExpiryScreen(modifier: Modifier = Modifier) {
 @Composable
 fun Graficos(modifier: Modifier = Modifier){
 
+    val context = LocalContext.current
+
+    //p/ ler os itens salvos
+    val items by ExpiryRepository
+        .getItems(context)
+        .collectAsState(initial = emptyList())
+
+    val diaAtual = LocalDate.now()
+
+    // variaveis do grafico
+
+    var total = 0
+    var contVencidos = 0 // produtos vencidos
+    var produtosRisco = 0 // em risco de vencer 2 semanas
+    var produtosAlerta = 0 // atenção em risco em 15 a 30 dias
+    var naValidade = 0 // dentro da validade
+
+    //total logica
+
+    total = items.size
+
+
+
     Surface(
         modifier = modifier,
         color = Color(0xFFF5F5F5)
