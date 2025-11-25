@@ -1,5 +1,15 @@
 package com.example.validade
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.systemBars
@@ -19,7 +29,6 @@ import kotlinx.coroutines.flow.map
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -35,7 +44,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import androidx.compose.ui.unit.dp
 import com.example.validade.ui.theme.ValidadeTheme
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -99,9 +107,9 @@ enum class AppDestinations(
     val label: String,
     val icon: ImageVector,
 ) {
-    HOME("Home", Icons.Default.Home),
+    HOME("Início", Icons.Default.Home),
     GRAFICO("Gráfico", Icons.Default.Favorite),
-    PROFILE("Profile", Icons.Default.AccountBox),
+    SOBRE("Sobre", Icons.Default.AccountBox),
 }
 
 @PreviewScreenSizes
@@ -143,12 +151,8 @@ fun ValidadeApp() {
                 )
             }
 
-            AppDestinations.PROFILE -> {
-                PlaceholderScreen(
-                    title = "Profile",
-                    modifier = Modifier
-                        .fillMaxSize()
-                )
+            AppDestinations.SOBRE -> {
+                telaSobre()
             }
         }
     }
@@ -458,5 +462,86 @@ fun Barra(
         }
 
         Text("$valor itens", style = MaterialTheme.typography.labelSmall)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun telaSobre(){
+
+    val scrollState = rememberScrollState()
+
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Sobre o aplicativo") }
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+
+            Text(
+                text = "Objetivo do Aplicativo",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Auxiliar no controle de validade de produtos, permitindo identificar itens vencidos, em risco, em atenção ou dentro da validade de forma simples, visual e organizada.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Text(
+                text = "Funcionalidades Principais",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "• Cadastro e listagem de produtos\n" +
+                        "• Classificação automática por data de validade\n" +
+                        "• Gráfico com visão geral dos itens\n" +
+                        "• Interface intuitiva com navegação inferior",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Text(
+                text = "Tecnologias Utilizadas",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "• Android Studio\n" +
+                        "• Kotlin\n" +
+                        "• Jetpack Compose\n" +
+                        "• Material Design 3",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Text(
+                text = "Desenvolvido por",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Penélope Marques Verdi",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Text(
+                text = "Projeto Acadêmico",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Aplicativo desenvolvido para a disciplina “Programação para Dispositivos Móveis em Android”.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
     }
 }
