@@ -1,5 +1,8 @@
 package com.example.validade
 
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
 import java.time.temporal.ChronoUnit
@@ -16,7 +19,6 @@ import kotlinx.coroutines.flow.map
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -75,14 +77,23 @@ object ExpiryRepository {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        // deixa o edge-to-edge desligado por enquanto
+        // enableEdgeToEdge()
         setContent {
             ValidadeTheme {
-                ValidadeApp()
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(WindowInsets.systemBars.asPaddingValues())
+                ) {
+                    ValidadeApp()
+                }
             }
         }
     }
 }
+
+
 
 enum class AppDestinations(
     val label: String,
@@ -179,7 +190,8 @@ fun ExpiryScreen(modifier: Modifier = Modifier) {
     val sortedItems = itemsFromStore.sortedBy { parseDateOrMax(it.expiryDate) }
 
     Surface(
-        modifier = modifier,
+        modifier = modifier
+        .windowInsetsPadding(WindowInsets.systemBars),
         color = Color(0xFFF5F5F5)
     ) {
         Column(
@@ -309,7 +321,7 @@ fun Graficos(modifier: Modifier = Modifier) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(WindowInsets.systemBars.asPaddingValues())
         ) {
             Text("Resumo dos produtos", style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(16.dp))
