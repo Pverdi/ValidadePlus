@@ -34,8 +34,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.*
@@ -108,8 +110,8 @@ enum class AppDestinations(
     val icon: ImageVector,
 ) {
     HOME("Início", Icons.Default.Home),
-    GRAFICO("Gráfico", Icons.Default.Favorite),
-    SOBRE("Sobre", Icons.Default.AccountBox),
+    GRAFICO("Gráfico", Icons.Default.BarChart),
+    SOBRE("Sobre", Icons.Default.Info),
 }
 
 @PreviewScreenSizes
@@ -301,7 +303,7 @@ fun Graficos(modifier: Modifier = Modifier) {
 
     val context = LocalContext.current
 
-    // p/ ler os itens salvos
+    // lê os itens salvos
     val items by ExpiryRepository
         .getItems(context)
         .collectAsState(initial = emptyList())
@@ -309,14 +311,11 @@ fun Graficos(modifier: Modifier = Modifier) {
     val diaAtual = LocalDate.now()
 
     // variáveis do gráfico
-    var total = 0
+    val total = items.size
     var contVencidos = 0    // produtos vencidos
-    var produtosRisco = 0   // em risco de vencer 2 semanas
-    var produtosAlerta = 0  // atenção em risco em 15 a 30 dias
+    var produtosRisco = 0   // em risco de vencer (≤14 dias)
+    var produtosAlerta = 0  // atenção (15–30 dias)
     var naValidade = 0      // dentro da validade
-
-    // total lógica
-    total = items.size
 
     // classificar cada item
     items.forEach { item ->
@@ -324,60 +323,84 @@ fun Graficos(modifier: Modifier = Modifier) {
         val daysUntil = ChronoUnit.DAYS.between(diaAtual, expiry)
 
         when {
-            // Vencidos
             daysUntil < 0 -> contVencidos++
-
-            // Em risco (até 14 dias)
             daysUntil in 0..14 -> produtosRisco++
-
-            // Atenção (15 a 30 dias)
             daysUntil in 15..30 -> produtosAlerta++
-
-            // Dentro da validade (>30 dias)
             else -> naValidade++
         }
     }
 
-    // ⬆️ até aqui é só LÓGICA
-    // ⬇️ daqui pra baixo é a UI (Surface + Column), FORA do forEach/when
-
     Surface(
-        modifier = modifier,
+        modifier = modifier.fillMaxSize(),
         color = Color(0xFFF5F5F5)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(WindowInsets.systemBars.asPaddingValues())
+                .windowInsetsPadding(WindowInsets.systemBars) // 👈 igual à Home
         ) {
-            Text("Resumo dos produtos", style = MaterialTheme.typography.headlineMedium)
-            Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Total cadastrados: $total")
-            Text("Produtos vencidos: $contVencidos")
-            Text("Produtos em risco (≤14 dias): $produtosRisco")
-            Text("Produtos em alerta (15–30 dias): $produtosAlerta")
-            Text("Dentro da validade (>30 dias): $naValidade")
+            // 🔹 BARRA DO TÍTULO (Validade+)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .padding(vertical = 12.dp)
+            ) {
+                Text(
+                    text = "Validade+",
+                    modifier = Modifier.align(Alignment.Center),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            // 🔹 CONTEÚDO DA TELA
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Top
+            ) {
 
-            Text(
-                "Gráfico de situação",
-                style = MaterialTheme.typography.titleMedium
-            )
+                Text(
+                    text = "Resumo dos produtos",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            GraficoBarrasHorizontais(
-                contVencidos = contVencidos,
-                produtosRisco = produtosRisco,
-                produtosAlerta = produtosAlerta,
-                naValidade = naValidade
-            )
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = "Gráfico de situação",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                GraficoBarrasHorizontais(
+                    contVencidos = contVencidos,
+                    produtosRisco = produtosRisco,
+                    produtosAlerta = produtosAlerta,
+                    naValidade = naValidade
+                )
+                Text(
+                    text = "Total cadastrados: $total",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            }
         }
     }
-
 }
+
 
 /* Produtos */
 
@@ -439,6 +462,14 @@ fun ExpiryScreenPreview() {
         ExpiryScreen()
     }
 }
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun GraficosPreview() {
+    ValidadeTheme {
+        Graficos()
+    }
+}
+
 @Composable
 fun GraficoBarrasHorizontais(
     contVencidos: Int,
