@@ -1,3 +1,4 @@
-  Demonstração do Aplicativo
+## 🎥 Demonstração do Aplicativo
 
-<video src="./VideoApp.mp4" controls width="450"> Video </video>
+![Demonstração do App](./GifApp.gif)
+
